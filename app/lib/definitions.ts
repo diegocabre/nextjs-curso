@@ -1,7 +1,5 @@
-// This file contains type definitions for your data.
-// It describes the shape of the data, and what data type each property should accept.
-// For simplicity of teaching, we're manually defining these types.
-// However, these types are generated automatically if you're using an ORM such as Prisma.
+export type InvoiceStatus = "pending" | "paid";
+
 export type User = {
   id: string;
   name: string;
@@ -13,35 +11,32 @@ export type Customer = {
   id: string;
   name: string;
   email: string;
-  image_url: string;
+  image_url: string | null; // Manejo de valores nulos
 };
 
 export type Invoice = {
   id: string;
   customer_id: string;
-  amount: number;
-  date: string;
-  // In TypeScript, this is called a string union type.
-  // It means that the "status" property can only be one of the two strings: 'pending' or 'paid'.
-  status: 'pending' | 'paid';
+  amount: number; // Almacenado en centavos
+  date: string; // Fecha en formato "YYYY-MM-DD"
+  status: InvoiceStatus;
 };
 
 export type Revenue = {
-  month: string;
-  revenue: number;
+  month: string; // Mes del ingreso en formato "YYYY-MM"
+  revenue: number; // Ingresos totales en la moneda local
 };
 
 export type LatestInvoice = {
   id: string;
   name: string;
-  image_url: string;
+  image_url: string | null;
   email: string;
-  amount: string;
+  amount: string; // Formateado como moneda (por ejemplo, "$1,000.00")
 };
 
-// The database returns a number for amount, but we later format it to a string with the formatCurrency function
-export type LatestInvoiceRaw = Omit<LatestInvoice, 'amount'> & {
-  amount: number;
+export type LatestInvoiceRaw = Omit<LatestInvoice, "amount"> & {
+  amount: number; // Almacenado en centavos antes de formatear
 };
 
 export type InvoicesTable = {
@@ -49,30 +44,28 @@ export type InvoicesTable = {
   customer_id: string;
   name: string;
   email: string;
-  image_url: string;
+  image_url: string | null; // Manejo de valores nulos
   date: string;
-  amount: number;
-  status: 'pending' | 'paid';
+  amount: number; // Almacenado en centavos
+  status: InvoiceStatus;
 };
 
 export type CustomersTableType = {
   id: string;
   name: string;
   email: string;
-  image_url: string;
+  image_url: string | null;
   total_invoices: number;
-  total_pending: number;
-  total_paid: number;
+  total_pending: number; // Almacenado en centavos
+  total_paid: number; // Almacenado en centavos
 };
 
-export type FormattedCustomersTable = {
-  id: string;
-  name: string;
-  email: string;
-  image_url: string;
-  total_invoices: number;
-  total_pending: string;
-  total_paid: string;
+export type FormattedCustomersTable = Omit<
+  CustomersTableType,
+  "total_pending" | "total_paid"
+> & {
+  total_pending: string; // Formateado como moneda
+  total_paid: string; // Formateado como moneda
 };
 
 export type CustomerField = {
@@ -80,9 +73,4 @@ export type CustomerField = {
   name: string;
 };
 
-export type InvoiceForm = {
-  id: string;
-  customer_id: string;
-  amount: number;
-  status: 'pending' | 'paid';
-};
+export type InvoiceForm = Omit<Invoice, "date">; // Derivado de Invoice, sin la fecha

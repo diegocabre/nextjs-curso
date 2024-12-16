@@ -3,6 +3,7 @@ import { UpdateInvoice, DeleteInvoice } from "@/app/ui/invoices/buttons";
 import InvoiceStatus from "@/app/ui/invoices/status";
 import { formatDateToLocal, formatCurrency } from "@/app/lib/utils";
 import { fetchFilteredInvoices } from "@/app/lib/data";
+import { type InvoicesTable } from "@/app/lib/definitions";
 
 export default async function InvoicesTable({
   query,
@@ -11,12 +12,19 @@ export default async function InvoicesTable({
   query: string;
   currentPage: number;
 }) {
-  const invoices = await fetchFilteredInvoices(query, currentPage);
+  let invoices: InvoicesTable[] = [];
+  try {
+    invoices = await fetchFilteredInvoices(query, currentPage);
+  } catch (error) {
+    console.error("Error fetching invoices:", error);
+    invoices = []; // Estado vacío en caso de error
+  }
 
   return (
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
+          {/* Vista móvil */}
           <div className="md:hidden">
             {invoices?.map((invoice) => (
               <div
@@ -27,7 +35,7 @@ export default async function InvoicesTable({
                   <div>
                     <div className="mb-2 flex items-center">
                       <Image
-                        src={invoice.image_url}
+                        src={invoice.image_url || "/default-avatar.png"}
                         className="mr-2 rounded-full"
                         width={28}
                         height={28}
@@ -54,6 +62,8 @@ export default async function InvoicesTable({
               </div>
             ))}
           </div>
+
+          {/* Vista de tabla */}
           <table className="hidden min-w-full text-gray-900 md:table">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
@@ -78,43 +88,51 @@ export default async function InvoicesTable({
               </tr>
             </thead>
             <tbody className="bg-white">
-              {invoices?.map((invoice) => (
-                <tr
-                  key={invoice.id}
-                  className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
-                >
-                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
-                    <div className="flex items-center gap-3">
-                      <Image
-                        src={invoice.image_url}
-                        className="rounded-full"
-                        width={28}
-                        height={28}
-                        alt={`${invoice.name}'s profile picture`}
-                      />
-                      <p>{invoice.name}</p>
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-3">
-                    {invoice.email}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-3">
-                    {formatCurrency(invoice.amount)}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-3">
-                    {formatDateToLocal(invoice.date)}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-3">
-                    <InvoiceStatus status={invoice.status} />
-                  </td>
-                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
-                    <div className="flex justify-end gap-3">
-                      <UpdateInvoice id={invoice.id} />
-                      <DeleteInvoice id={invoice.id} />
-                    </div>
+              {invoices && invoices.length > 0 ? (
+                invoices.map((invoice) => (
+                  <tr
+                    key={invoice.id}
+                    className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
+                  >
+                    <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                      <div className="flex items-center gap-3">
+                        <Image
+                          src={invoice.image_url || "/default-avatar.png"}
+                          className="rounded-full"
+                          width={28}
+                          height={28}
+                          alt={`${invoice.name}'s profile picture`}
+                        />
+                        <p>{invoice.name}</p>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-3">
+                      {invoice.email}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-3">
+                      {formatCurrency(invoice.amount)}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-3">
+                      {formatDateToLocal(invoice.date)}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-3">
+                      <InvoiceStatus status={invoice.status} />
+                    </td>
+                    <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                      <div className="flex justify-end gap-3">
+                        <UpdateInvoice id={invoice.id} />
+                        <DeleteInvoice id={invoice.id} />
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="text-center py-4">
+                    No invoices found.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

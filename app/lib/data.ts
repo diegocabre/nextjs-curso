@@ -87,7 +87,8 @@ const ITEMS_PER_PAGE = 6;
 export async function fetchFilteredInvoices(
   query: string,
   currentPage: number
-) {
+): Promise<InvoicesTable[]> {
+  
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
